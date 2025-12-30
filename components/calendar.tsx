@@ -20,6 +20,9 @@ export default function MyCalendar() {
     info.view.calendar.unselect();
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   return (
     <div className='h-screen p-4 calendar-wrapper overflow-hidden transition-all duration-300 ease-in-out'>
       <FullCalendar
@@ -27,6 +30,10 @@ export default function MyCalendar() {
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView='dayGridMonth'
         selectable
+        locale='vi'
+        validRange={{
+          start: today,
+        }}
         select={handleDateSelect}
         height='100%'
       />

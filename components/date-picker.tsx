@@ -17,6 +17,8 @@ interface DatePickerButtonProps {
 }
 
 export function DatePickerButton({ date, setDate }: DatePickerButtonProps) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const [open, setOpen] = React.useState(false);
 
   const [month, setMonth] = React.useState<Date>(date);
@@ -36,7 +38,7 @@ export function DatePickerButton({ date, setDate }: DatePickerButtonProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant='secondary' className='justify-start'>
+        <Button variant='outline' className='justify-start'>
           {format(date, "d 'thg' M, yyyy", { locale: vi })}
         </Button>
       </PopoverTrigger>
@@ -48,6 +50,7 @@ export function DatePickerButton({ date, setDate }: DatePickerButtonProps) {
           month={month}
           onMonthChange={setMonth}
           onSelect={onSelectDate}
+          disabled={{ before: today }}
           initialFocus
         />
       </PopoverContent>
