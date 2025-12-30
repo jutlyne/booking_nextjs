@@ -1,0 +1,28 @@
+{
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"editor.formatOnSave": true,
+	"eslint.format.enable": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"eslint.validate": ["typescript"],
+	"terminal.integrated.shellArgs.windows": ["-ExecutionPolicy", "Bypass"],
+	"typescript.tsdk": "node_modules\\typescript\\lib",
+	"cSpell.words": [
+		"dashicons",
+		"devicon",
+		"giscus",
+		"iconify",
+		"Nuxt",
+		"nuxtjs",
+		"shadcn",
+		"vuejs"
+	],
+	"[typescript]": { "editor.tabSize": 2 },
+	"[javascript]": { "editor.tabSize": 2 },
+	"[html]": { "editor.tabSize": 2 },
+	"[css]": { "editor.tabSize": 2 },
+	"[json]": {
+		"editor.tabSize": 2,
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
+}
