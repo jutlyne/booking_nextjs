@@ -9,10 +9,7 @@ import {
   SelectItem,
 } from './ui/select';
 
-const DEFAULT_OPTIONS = [
-  { id: 'no_repeat', label: 'Không lặp lại' },
-  { id: 'weekday', label: 'Mọi ngày trong tuần' },
-];
+const DEFAULT_OPTIONS = [{ id: 'no_repeat', label: 'Không lặp lại' }];
 
 interface RecurrenceSelectProps {
   selected: string;
