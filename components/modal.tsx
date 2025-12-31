@@ -14,11 +14,16 @@ import { DatePickerButton } from './date-picker';
 import { RecurrenceSelect } from './recurrence-select';
 import { RepeatDialog } from './repeat-dialog';
 import { buildEventPayload } from '@/utils/eventPayload';
+import { format } from 'date-fns';
 
 interface ModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedRange: { startStr: string } | null;
+  selectedRange: {
+    startStr: string;
+    initialStartTime: string;
+    initialEndTime: string;
+  } | null;
   onRangeChange: (date: string) => void;
   calendarRef: React.RefObject<FullCalendar | null>;
 }
@@ -32,7 +37,6 @@ export function Modal({
 }: ModalProps) {
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
-
   const [startTime, setStartTime] = React.useState('08:00');
   const [endTime, setEndTime] = React.useState('08:15');
   const [error, setError] = React.useState<string | null>(null);
@@ -44,18 +48,24 @@ export function Modal({
   } | null>(null);
   const [recurrenceData, setRecurrenceData] = React.useState<any>(null);
 
-  const [customOpen, setCustomOpen] = React.useState(false);
-  const prevSelectedRef = React.useRef<string>('no_repeat');
+  const [repeatDialogOpen, setRepeatDialogOpen] = React.useState(false);
+  const [interval, setInterval] = React.useState(1);
+  const [unit, setUnit] = React.useState<'day' | 'week' | 'month' | 'year'>(
+    'week'
+  );
+  const [selectedDays, setSelectedDays] = React.useState<string[]>([]);
+  const [endType, setEndType] = React.useState<'never' | 'onDate' | 'after'>(
+    'never'
+  );
+  const [endDate, setEndDate] = React.useState('');
+  const [endTimes, setEndTimes] = React.useState(1);
 
+  const prevSelectedRef = React.useRef('no_repeat');
   const validateTimer = React.useRef<NodeJS.Timeout | null>(null);
-
   const [virtualEl, setVirtualEl] = React.useState<{
     getBoundingClientRect: () => DOMRect;
   } | null>(null);
-
-  const startDate = selectedRange?.startStr
-    ? new Date(selectedRange.startStr)
-    : new Date();
+  const viewType = calendarRef.current?.getApi().view.type;
 
   const toMinutes = (time: string) => {
     const [h, m] = time.split(':').map(Number);
@@ -65,25 +75,19 @@ export function Modal({
   const validateTime = (start: string, end: string) => {
     const s = toMinutes(start);
     const e = toMinutes(end);
-
-    if (s < 8 * 60 || e > 17 * 60) {
+    if (s < 8 * 60 || e > 17 * 60)
       return 'Thời gian phải trong khoảng 08:00 – 17:00';
-    }
-    if (e <= s) {
-      return 'Giờ kết thúc phải sau giờ bắt đầu';
-    }
-    if ((e - s) % 15 !== 0) {
-      return 'Thời gian phải theo bước 15 phút';
-    }
+    if (e <= s) return 'Giờ kết thúc phải sau giờ bắt đầu';
+    if ((e - s) % 15 !== 0) return 'Thời gian phải theo bước 15 phút';
     return null;
   };
 
   const debounceValidate = (start: string, end: string) => {
     if (validateTimer.current) clearTimeout(validateTimer.current);
-
-    validateTimer.current = setTimeout(() => {
-      setError(validateTime(start, end));
-    }, 500);
+    validateTimer.current = setTimeout(
+      () => setError(validateTime(start, end)),
+      500
+    );
   };
 
   const resetForm = () => {
@@ -97,21 +101,25 @@ export function Modal({
     setCustomOption(null);
     setRecurrenceData(null);
     prevSelectedRef.current = 'no_repeat';
+
+    setInterval(1);
+    setUnit('week');
+    setSelectedDays([]);
+    setEndType('never');
+    setEndDate('');
+    setEndTimes(1);
   };
 
   const handleStartChange = (value: string) => {
     setStartTime(value);
-
     const s = toMinutes(value);
     const e = toMinutes(endTime);
-
     if (e <= s) {
       const newEnd = s + 15;
       const h = String(Math.floor(newEnd / 60)).padStart(2, '0');
       const m = String(newEnd % 60).padStart(2, '0');
       setEndTime(`${h}:${m}`);
     }
-
     debounceValidate(value, endTime);
   };
 
@@ -128,33 +136,95 @@ export function Modal({
     return true;
   }, [title, selectedRange, startTime, endTime, error]);
 
-  React.useEffect(() => {
-    if (!selectedRange?.startStr) return;
+  const startDate = selectedRange?.startStr
+    ? new Date(selectedRange.startStr)
+    : new Date();
 
-    calendarRef.current?.getApi().gotoDate(selectedRange.startStr);
-
-    const raf = requestAnimationFrame(() => {
+  const findAnchorEl = (
+    viewType: string,
+    dateStr: string,
+    timeStr?: string
+  ): { getBoundingClientRect: () => DOMRect } | null => {
+    if (viewType == 'dayGridMonth') {
       const cell = document.querySelector(
-        `[data-date="${selectedRange.startStr}"]`
+        `[data-date="${dateStr}"]`
+      ) as HTMLElement;
+
+      return {
+        getBoundingClientRect: () => cell.getBoundingClientRect(),
+      };
+    }
+
+    if (viewType.includes('timeGrid')) {
+      const col = document.querySelector(
+        `.fc-col-header-cell[data-date="${format(dateStr, 'yyyy-MM-dd')}"]`
+      ) as HTMLElement;
+
+      const slot = document.querySelector(
+        `.fc-timegrid-slot[data-time="${timeStr}:00"]`
       ) as HTMLElement | null;
 
-      if (cell) {
-        setVirtualEl({
-          getBoundingClientRect: () => cell.getBoundingClientRect(),
-        });
+      if (!col || !slot) return null;
+
+      const colRect = col.getBoundingClientRect();
+      const slotRect = slot.getBoundingClientRect();
+
+      return {
+        getBoundingClientRect: () =>
+          new DOMRect(
+            colRect.left,
+            slotRect.top,
+            colRect.width,
+            slotRect.height
+          ),
+      };
+    }
+
+    return null;
+  };
+
+  React.useEffect(() => {
+    if (!selectedRange?.startStr) return;
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+
+    api.gotoDate(selectedRange.startStr);
+
+    const raf = requestAnimationFrame(() => {
+      const viewType = api.view.type;
+
+      const anchorEl = findAnchorEl(
+        viewType,
+        selectedRange.startStr,
+        selectedRange.initialStartTime
+      );
+
+      if (anchorEl) {
+        setVirtualEl(anchorEl);
       }
     });
 
     return () => cancelAnimationFrame(raf);
   }, [selectedRange?.startStr, calendarRef]);
 
+  React.useEffect(() => {
+    if (!selectedRange) return;
+
+    setStartTime(selectedRange.initialStartTime);
+    setEndTime(selectedRange.initialEndTime);
+  }, [selectedRange]);
+
   if (!virtualEl) return null;
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverAnchor virtualRef={{ current: virtualEl }} />
-
-      <PopoverContent className='w-80 grid gap-4'>
+      <PopoverContent
+        side='left'
+        sideOffset={10}
+        align='start'
+        className='w-80 grid gap-4'
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -182,9 +252,7 @@ export function Modal({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-
           <DatePickerButton date={startDate} setDate={onRangeChange} />
-
           <div className='flex items-center gap-2'>
             <Input
               type='time'
@@ -205,15 +273,13 @@ export function Modal({
             />
           </div>
 
-          {error && (
-            <p className='text-sm text-destructive text-center'>{error}</p>
-          )}
+          {error && <p className='text-sm text-red-500 text-center'>{error}</p>}
 
           <RecurrenceSelect
             selected={selected}
             setSelected={setSelected}
             customOption={customOption}
-            setCustomOpen={setCustomOpen}
+            setCustomOpen={setRepeatDialogOpen}
             prevSelectedRef={prevSelectedRef}
           />
 
@@ -243,21 +309,33 @@ export function Modal({
             </Button>
           </div>
         </form>
-      </PopoverContent>
 
-      <RepeatDialog
-        open={customOpen}
-        onOpenChange={setCustomOpen}
-        onSave={(data) => {
-          const id = `custom_${Date.now()}`;
-          setCustomOption({ id, label: data.label });
-          setSelected(id);
-          prevSelectedRef.current = id;
-          setRecurrenceData(data);
-          setCustomOpen(false);
-        }}
-        onCancel={() => setSelected(prevSelectedRef.current)}
-      />
+        <RepeatDialog
+          open={repeatDialogOpen}
+          onOpenChange={setRepeatDialogOpen}
+          onSave={(data) => {
+            setCustomOption({ id: `custom_${Date.now()}`, label: data.label });
+            setSelected(`custom_${Date.now()}`);
+            prevSelectedRef.current = `custom_${Date.now()}`;
+            setRecurrenceData(data);
+
+            setRepeatDialogOpen(false);
+          }}
+          onCancel={() => setSelected(prevSelectedRef.current)}
+          interval={interval}
+          setInterval={setInterval}
+          unit={unit}
+          setUnit={setUnit}
+          selectedDays={selectedDays}
+          setSelectedDays={setSelectedDays}
+          endType={endType}
+          setEndType={setEndType}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          endTimes={endTimes}
+          setEndTimes={setEndTimes}
+        />
+      </PopoverContent>
     </Popover>
   );
 }

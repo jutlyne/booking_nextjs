@@ -1,4 +1,5 @@
 'use client';
+
 import * as React from 'react';
 import {
   Dialog,
@@ -23,37 +24,27 @@ import { format } from 'date-fns';
 interface RepeatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: {
-    label: string;
-    interval: number;
-    unit: 'day' | 'week' | 'month' | 'year';
-    selectedDays: string[];
-    end: {
-      type: 'never' | 'onDate' | 'after';
-      date?: string;
-      times?: number;
-    };
-  }) => void;
+  onSave: (data: any) => void;
   onCancel: () => void;
-}
-
-interface RepeatLabelOptions {
   interval: number;
+  setInterval: React.Dispatch<React.SetStateAction<number>>;
   unit: 'day' | 'week' | 'month' | 'year';
-  selectedDays?: string[];
-  end?: {
-    type: 'never' | 'onDate' | 'after';
-    date?: string;
-    times?: number;
-  };
+  setUnit: React.Dispatch<
+    React.SetStateAction<'day' | 'week' | 'month' | 'year'>
+  >;
+  selectedDays: string[];
+  setSelectedDays: React.Dispatch<React.SetStateAction<string[]>>;
+  endType: 'never' | 'onDate' | 'after';
+  setEndType: React.Dispatch<
+    React.SetStateAction<'never' | 'onDate' | 'after'>
+  >;
+  endDate: string;
+  setEndDate: React.Dispatch<React.SetStateAction<string>>;
+  endTimes: number;
+  setEndTimes: React.Dispatch<React.SetStateAction<number>>;
 }
 
-function formatRepeatLabel({
-  interval,
-  unit,
-  selectedDays = [],
-  end,
-}: RepeatLabelOptions) {
+function formatRepeatLabel({ interval, unit, selectedDays = [], end }: any) {
   const unitLabel =
     unit === 'day'
       ? 'ngày'
@@ -64,11 +55,9 @@ function formatRepeatLabel({
       : 'năm';
 
   let label = `Mỗi ${interval} ${unitLabel}`;
-
   if (unit === 'week' && selectedDays.length > 0) {
     label += ` vào ${selectedDays.join(', ')}`;
   }
-
   if (end) {
     switch (end.type) {
       case 'onDate':
@@ -77,11 +66,8 @@ function formatRepeatLabel({
       case 'after':
         if (end.times) label += ` trong ${end.times} lần`;
         break;
-      case 'never':
-        break;
     }
   }
-
   return label;
 }
 
@@ -90,26 +76,27 @@ export function RepeatDialog({
   onOpenChange,
   onSave,
   onCancel,
+  interval,
+  setInterval,
+  unit,
+  setUnit,
+  selectedDays,
+  setSelectedDays,
+  endType,
+  setEndType,
+  endDate,
+  setEndDate,
+  endTimes,
+  setEndTimes,
 }: RepeatDialogProps) {
   const today = format(new Date(), 'yyyy-MM-dd');
-  const [interval, setInterval] = React.useState(1);
-  const [unit, setUnit] = React.useState<'day' | 'week' | 'month' | 'year'>(
-    'week'
-  );
-
   const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-  const [selectedDays, setSelectedDays] = React.useState<string[]>([]);
+
   const toggleDay = (day: string) => {
     setSelectedDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
-
-  const [endType, setEndType] = React.useState<'never' | 'onDate' | 'after'>(
-    'never'
-  );
-  const [endDate, setEndDate] = React.useState<string>('');
-  const [endTimes, setEndTimes] = React.useState<number>(1);
 
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onCancel()}>
@@ -139,22 +126,24 @@ export function RepeatDialog({
           </Select>
         </div>
 
-        <div className='py-2'>
-          <Label className='block mb-1'>Lặp lại vào</Label>
-          <div className='flex gap-1'>
-            {days.map((day) => (
-              <Button
-                key={day}
-                variant={selectedDays.includes(day) ? 'default' : 'outline'}
-                size='sm'
-                className='w-8 h-8 p-0'
-                onClick={() => toggleDay(day)}
-              >
-                {day}
-              </Button>
-            ))}
+        {unit === 'week' && (
+          <div className='py-2'>
+            <Label className='block mb-1'>Lặp lại vào</Label>
+            <div className='flex gap-1'>
+              {days.map((day) => (
+                <Button
+                  key={day}
+                  variant={selectedDays.includes(day) ? 'default' : 'outline'}
+                  size='sm'
+                  className='w-8 h-8 p-0'
+                  onClick={() => toggleDay(day)}
+                >
+                  {day}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className='py-2'>
           <Label className='block mb-1'>Kết thúc</Label>
