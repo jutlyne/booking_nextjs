@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import NextAuth, { User } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
 interface BackendUser {
@@ -18,7 +18,9 @@ const handler = NextAuth({
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(
+        credentials: Record<'email' | 'password', string> | undefined
+      ) {
         if (!credentials) return null;
 
         const res = await fetch(
@@ -44,7 +46,7 @@ const handler = NextAuth({
           fullname: user.fullname,
           phone: user.phone,
           role: user.role,
-        };
+        } as User;
       },
     }),
   ],
