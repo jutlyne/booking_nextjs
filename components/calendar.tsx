@@ -76,6 +76,12 @@ export default function MyCalendar() {
           week: 'Tuần',
           day: 'Ngày',
         }}
+        slotLabelFormat={{
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: false,
+          meridiem: 'short',
+        }}
       />
 
       <Modal

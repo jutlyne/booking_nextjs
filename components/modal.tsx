@@ -65,7 +65,6 @@ export function Modal({
   const [virtualEl, setVirtualEl] = React.useState<{
     getBoundingClientRect: () => DOMRect;
   } | null>(null);
-  const viewType = calendarRef.current?.getApi().view.type;
 
   const toMinutes = (time: string) => {
     const [h, m] = time.split(':').map(Number);
@@ -212,6 +211,10 @@ export function Modal({
 
     setStartTime(selectedRange.initialStartTime);
     setEndTime(selectedRange.initialEndTime);
+    debounceValidate(
+      selectedRange.initialStartTime,
+      selectedRange.initialEndTime
+    );
   }, [selectedRange]);
 
   if (!virtualEl) return null;
@@ -233,7 +236,7 @@ export function Modal({
             const payload = buildEventPayload({
               title: title.trim(),
               description: description.trim() || null,
-              selectedRangeStart: selectedRange.startStr,
+              selectedRangeStart: selectedRange.startStr.split('T')[0],
               startTime,
               endTime,
               recurrenceData,
@@ -318,7 +321,6 @@ export function Modal({
             setSelected(`custom_${Date.now()}`);
             prevSelectedRef.current = `custom_${Date.now()}`;
             setRecurrenceData(data);
-
             setRepeatDialogOpen(false);
           }}
           onCancel={() => setSelected(prevSelectedRef.current)}
