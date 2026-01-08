@@ -10,7 +10,7 @@ interface BackendUser {
 }
 
 const handler = NextAuth({
-  secret: process.env.SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     Credentials({
       name: 'credentials',

@@ -1,9 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { signOut } from 'next-auth/react';
 
 export function SiteHeader() {
   return (
@@ -15,23 +13,6 @@ export function SiteHeader() {
           className='mx-2 data-[orientation=vertical]:h-4'
         />
         <h1 className='text-base font-medium'>Documents</h1>
-        <div className='ml-auto flex items-center gap-2'>
-          <Button
-            variant='ghost'
-            asChild
-            size='sm'
-            className='hidden sm:flex'
-            onClick={() => signOut()}
-          >
-            <a
-              href='javascript:void(0);'
-              rel='noopener noreferrer'
-              className='dark:text-foreground'
-            >
-              Logout
-            </a>
-          </Button>
-        </div>
       </div>
     </header>
   );
