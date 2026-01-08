@@ -1,21 +1,25 @@
+import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 
 const protectedRoutes = ['/dashboard'];
 const publicRoutes = ['/login'];
 
-export function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
-  const token = req.cookies.get('token')?.value;
+export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  const isHome = path === '/';
+  const isHome = pathname === '/';
 
   const isProtectedRoute =
     isHome ||
     protectedRoutes.some(
-      (route) => path === route || path.startsWith(route + '/')
+      (route) => pathname === route || pathname.startsWith(route + '/')
     );
 
-  const isPublicRoute = publicRoutes.includes(path);
+  const isPublicRoute = publicRoutes.includes(pathname);
 
   if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL('/login', req.url));

@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
-import { authApi } from '@/lib/auth';
+import { FormEvent, useState } from 'react';
+import { signIn } from 'next-auth/react';
 
 export function LoginForm({
   className,
@@ -14,20 +14,23 @@ export function LoginForm({
 }: React.ComponentProps<'div'>) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     if (isLoading) return;
 
-    try {
-      setIsLoading(true);
+    setIsLoading(true);
 
-      await authApi.login(formData);
+    const res = await signIn('credentials', {
+      ...formData,
+      redirect: false,
+    });
+
+    setIsLoading(false);
+
+    if (!res?.error) {
       window.location.href = '/';
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.error(res.error);
     }
   };
 
