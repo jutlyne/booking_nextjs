@@ -1,14 +1,6 @@
 import NextAuth, { User } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
-interface BackendUser {
-  id: string;
-  email: string;
-  fullname: string;
-  role: string;
-  phone: number;
-}
-
 const handler = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -38,15 +30,9 @@ const handler = NextAuth({
 
         if (!res.ok) return null;
 
-        const user: BackendUser = (await res.json()).data?.user;
+        const user: User = (await res.json()).data?.user;
 
-        return {
-          id: user.id,
-          email: user.email,
-          fullname: user.fullname,
-          phone: user.phone,
-          role: user.role,
-        } as User;
+        return user;
       },
     }),
   ],
