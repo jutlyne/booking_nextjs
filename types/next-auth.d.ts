@@ -9,10 +9,6 @@ declare module 'next-auth' {
       role: UserRole;
       phone: number;
     };
-    auth: {
-      token: string;
-      refreshToken: string;
-    };
     error?: string;
   }
 

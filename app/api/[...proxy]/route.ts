@@ -1,11 +1,14 @@
-import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { authOptions } from '../auth/[...nextauth]/route';
 import { HttpStatusCode } from 'axios';
+import { getToken } from 'next-auth/jwt';
 
 async function handler(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  const accessToken = session?.auth?.token;
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  const accessToken = token?.auth?.token;
 
   if (!accessToken) {
     return NextResponse.json(
