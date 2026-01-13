@@ -9,6 +9,11 @@ declare module 'next-auth' {
       role: UserRole;
       phone: number;
     };
+    auth: {
+      token: string;
+      refreshToken: string;
+    };
+    error?: string;
   }
 
   interface User {
@@ -17,6 +22,8 @@ declare module 'next-auth' {
     fullname: string;
     role: UserRole;
     phone: number;
+    token: string;
+    refreshToken: string;
   }
 }
 
@@ -29,5 +36,11 @@ declare module 'next-auth/jwt' {
       role: UserRole;
       phone: number;
     };
+    auth: {
+      token: string;
+      refreshToken: string;
+    };
+    accessTokenExpires: number;
+    error?: string;
   }
 }
