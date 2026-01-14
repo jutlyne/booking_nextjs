@@ -2,7 +2,7 @@ import { decode } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 // import { Redis } from '@upstash/redis';
 
-const protectedRoutes = ['/dashboard'];
+const protectedRoutes = ['/users'];
 const publicRoutes = ['/login'];
 
 // Todo implement logic check user in-active
