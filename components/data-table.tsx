@@ -2,26 +2,13 @@
 
 import * as React from 'react';
 import { z } from 'zod';
-import {
-  DndContext,
-  closestCenter,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { DndContext, closestCenter } from '@dnd-kit/core';
 import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   useReactTable,
   type ColumnDef,
-  type Row,
   type VisibilityState,
 } from '@tanstack/react-table';
 import {
@@ -64,6 +51,15 @@ import {
   IconChevronsLeft,
 } from '@tabler/icons-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SpinnerCustom } from './ui/spinner';
+import { ROLES } from '@/lib/config';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 export const schema = z.object({
   id: z.number(),
@@ -113,6 +109,17 @@ const columns: ColumnDef<User>[] = [
     header: 'Số điện thoại',
   },
   {
+    accessorKey: 'avatar',
+    header: 'Ảnh đại diện',
+    cell: ({ row }) => (
+      <img
+        src='https://picsum.photos/200/300'
+        alt={row.original.fullname}
+        className='h-8 w-8 rounded-full object-cover'
+      />
+    ),
+  },
+  {
     accessorKey: 'role',
     header: 'Vai trò',
     cell: ({ row }) => <Badge variant='outline'>{row.original.role}</Badge>,
@@ -136,29 +143,13 @@ const columns: ColumnDef<User>[] = [
   },
 ];
 
-function DraggableRow({ row }: { row: Row<User> }) {
-  const { setNodeRef, transform, transition } = useSortable({
-    id: row.original.id,
-  });
-
-  return (
-    <TableRow
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-export function DataTable({ data: initialData }: { data: User[] }) {
+export function DataTable({
+  data: initialData,
+  isLoading,
+}: {
+  data: User[];
+  isLoading: boolean;
+}) {
   const [data, setData] = React.useState(initialData);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -167,10 +158,9 @@ export function DataTable({ data: initialData }: { data: User[] }) {
     pageSize: 10,
   });
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data.map((d) => d.id),
-    [data]
-  );
+  React.useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
 
   const table = useReactTable({
     data,
@@ -186,17 +176,6 @@ export function DataTable({ data: initialData }: { data: User[] }) {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  function onDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((items) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }
-
   return (
     <div className='flex flex-col gap-4'>
       <Label htmlFor='view-selector' className='sr-only'>
@@ -208,8 +187,8 @@ export function DataTable({ data: initialData }: { data: User[] }) {
             <DropdownMenuTrigger asChild>
               <Button variant='outline' size='sm'>
                 <IconLayoutColumns />
-                <span className='hidden lg:inline'>Customize Columns</span>
-                <span className='lg:hidden'>Columns</span>
+                <span className='hidden lg:inline'>Tùy chỉnh cột</span>
+                <span className='lg:hidden'>Cột</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -236,12 +215,12 @@ export function DataTable({ data: initialData }: { data: User[] }) {
 
           <Button variant='outline' size='sm'>
             <IconPlus />
-            <span className='hidden lg:inline'>Add Section</span>
+            <span className='hidden lg:inline'>Thêm</span>
           </Button>
         </div>
       </div>
 
-      <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <DndContext collisionDetection={closestCenter}>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -256,14 +235,38 @@ export function DataTable({ data: initialData }: { data: User[] }) {
           </TableHeader>
 
           <TableBody>
-            <SortableContext
-              items={dataIds}
-              strategy={verticalListSortingStrategy}
-            >
-              {table.getRowModel().rows.map((row) => (
-                <DraggableRow key={row.id} row={row} />
-              ))}
-            </SortableContext>
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  <SpinnerCustom className='size-6' />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className='h-24 text-center'
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </DndContext>
@@ -350,9 +353,18 @@ function UserDrawer({ user }: { user: User }) {
             <Label>Số điện thoại</Label>
             <Input defaultValue={user.phone} />
           </div>
-          <div>
-            <Label>Vai trò</Label>
-            <Input defaultValue={user.role} />
+          <div className='flex flex-col gap-3'>
+            <Label htmlFor='reviewer'>Vai trò</Label>
+            <Select defaultValue={user.role}>
+              <SelectTrigger id='role' className='w-full'>
+                <SelectValue placeholder='Chọn vai trò' />
+              </SelectTrigger>
+              <SelectContent>
+                {ROLES.map((role) => (
+                  <SelectItem value={role}>{role}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

@@ -7,4 +7,9 @@ const apiClient = axios.create({
   },
 });
 
+export type ApiResponse<T> = {
+  data: T;
+  meta?: unknown;
+};
+
 export default apiClient;
