@@ -7,16 +7,19 @@ const TOKEN_EXPIRY_DURATION = 30 * 60 * 1000;
 
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: `refreshToken=${token.auth.refreshToken}; token=${token.auth.token}`,
-      },
-      body: JSON.stringify({
-        refreshToken: token.auth.refreshToken,
-      }),
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: `refreshToken=${token.auth.refreshToken}; token=${token.auth.token}`,
+        },
+        body: JSON.stringify({
+          refreshToken: token.auth.refreshToken,
+        }),
+      }
+    );
 
     const data = await res.json();
 
