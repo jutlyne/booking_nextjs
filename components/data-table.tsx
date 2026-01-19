@@ -67,7 +67,7 @@ export function DataTable<T extends { id: string | number }>({
     },
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
-    getRowId: (row: T & { id: number | string }) => String((row as any).id),
+    getRowId: (row) => row.id.toString(),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
