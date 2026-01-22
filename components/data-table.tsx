@@ -36,14 +36,17 @@ import {
   IconChevronsLeft,
 } from '@tabler/icons-react';
 import { SpinnerCustom } from './ui/spinner';
+import Link from 'next/link';
 
 export function DataTable<T extends { id: string | number }>({
   data: initialData,
   columns,
+  createUrl,
   isLoading,
 }: {
   data: T[];
   columns: ColumnDef<T>[];
+  createUrl: string;
   isLoading: boolean;
 }) {
   const [data, setData] = React.useState(initialData);
@@ -95,7 +98,7 @@ export function DataTable<T extends { id: string | number }>({
                 .filter(
                   (column) =>
                     column.getCanHide() &&
-                    typeof column.accessorFn !== 'undefined'
+                    typeof column.accessorFn !== 'undefined',
                 )
                 .map((column) => (
                   <DropdownMenuCheckboxItem
@@ -109,9 +112,11 @@ export function DataTable<T extends { id: string | number }>({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant='outline' size='sm'>
-            <IconPlus />
-            <span className='hidden lg:inline'>Thêm</span>
+          <Button variant='outline' size='sm' asChild>
+            <Link href={createUrl}>
+              <IconPlus />
+              <span className='hidden lg:inline'>Thêm</span>
+            </Link>
           </Button>
         </div>
       </div>
@@ -147,7 +152,7 @@ export function DataTable<T extends { id: string | number }>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

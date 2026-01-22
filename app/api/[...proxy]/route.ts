@@ -42,25 +42,21 @@ async function handler(req: NextRequest) {
 
   const createHeaders = (token: string) => {
     const headers = new Headers();
-    headers.set(
-      'Content-Type',
-      req.headers.get('Content-Type') || 'application/json',
-    );
+    const contentType = req.headers.get('content-type');
+    if (contentType) {
+      headers.set('Content-Type', contentType);
+    }
     headers.set('Accept', 'application/json');
     headers.set('Cookie', `token=${token}`);
     return headers;
   };
 
-  const body =
-    req.method === 'GET' || req.method === 'HEAD'
-      ? undefined
-      : await req.text();
-
   const callBackend = async (token: string) => {
     return fetch(targetUrl, {
       method: req.method,
       headers: createHeaders(token),
-      body,
+      body: req.body,
+      duplex: 'half',
     });
   };
 

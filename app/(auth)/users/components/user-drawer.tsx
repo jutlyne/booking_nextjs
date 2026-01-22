@@ -16,10 +16,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useUpdateUser } from '../hooks/useUpdateUser';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function UserDrawer({ user }: { user: User }) {
   const isMobile = useIsMobile();
   const { mutateAsync } = useUpdateUser(user.id);
+
+  const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -37,11 +41,23 @@ export function UserDrawer({ user }: { user: User }) {
   } = form;
 
   const onSubmit: SubmitHandler<FormValues> = async (values) => {
-    await mutateAsync(values);
+    try {
+      await mutateAsync(values);
+      toast.success('Cập nhật người dùng thành công');
+    } catch (error) {
+      toast.error('Cập nhật người dùng thất bại');
+      form.reset();
+    } finally {
+      setIsOpen(false);
+    }
   };
 
   return (
-    <Drawer direction={isMobile ? 'bottom' : 'right'}>
+    <Drawer
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      direction={isMobile ? 'bottom' : 'right'}
+    >
       <DrawerTrigger asChild>
         <Button variant='link' className='px-0'>
           {user.fullname}

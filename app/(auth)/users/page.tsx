@@ -13,6 +13,7 @@ export default function Page() {
       <DataTable<User>
         data={users ?? []}
         columns={userColumns}
+        createUrl='/users/new'
         isLoading={loading}
       />
     </div>

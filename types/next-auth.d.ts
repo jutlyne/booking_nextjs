@@ -40,3 +40,9 @@ declare module 'next-auth/jwt' {
     error?: string;
   }
 }
+
+declare global {
+  interface RequestInit {
+    duplex?: 'half' | 'full';
+  }
+}

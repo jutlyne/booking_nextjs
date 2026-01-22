@@ -11,6 +11,9 @@ import {
 import { IconDotsVertical } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/confirm-dialog';
+import { useDeleteUser } from '../hooks/useDeleteUser';
+import { toast } from 'sonner';
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -53,7 +56,7 @@ export const userColumns: ColumnDef<User>[] = [
     header: 'Ảnh đại diện',
     cell: ({ row }) => (
       <img
-        src='https://picsum.photos/200/300'
+        src={row.original.avatarUrl}
         alt={row.original.fullname}
         className='h-8 w-8 rounded-full object-cover'
       />
@@ -67,18 +70,39 @@ export const userColumns: ColumnDef<User>[] = [
   {
     id: 'actions',
     enableHiding: false,
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size='icon' variant='ghost'>
-            <IconDotsVertical />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align='end'>
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem variant='destructive'>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      const user = row.original;
+      const { mutate, isPending } = useDeleteUser();
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size='icon' variant='ghost'>
+              <IconDotsVertical />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align='end'>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+
+            <ConfirmDialog
+              title='Xoá người dùng'
+              description={`Bạn có chắc chắn muốn xoá "${user.fullname}"?`}
+              trigger={
+                <DropdownMenuItem
+                  className='text-red-600 focus:text-red-600'
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Delete
+                </DropdownMenuItem>
+              }
+              onConfirm={() => mutate(user.id)}
+              onSuccess={() => toast.success('Xóa người dùng thành công!')}
+              loading={isPending}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];
