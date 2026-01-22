@@ -33,7 +33,7 @@ async function handler(req: NextRequest) {
   if (!accessToken || !refreshToken) {
     return NextResponse.json(
       { message: 'Unauthorized' },
-      { status: HttpStatusCode.Unauthorized }
+      { status: HttpStatusCode.Unauthorized },
     );
   }
 
@@ -44,18 +44,23 @@ async function handler(req: NextRequest) {
     const headers = new Headers();
     headers.set(
       'Content-Type',
-      req.headers.get('Content-Type') || 'application/json'
+      req.headers.get('Content-Type') || 'application/json',
     );
     headers.set('Accept', 'application/json');
     headers.set('Cookie', `token=${token}`);
     return headers;
   };
 
+  const body =
+    req.method === 'GET' || req.method === 'HEAD'
+      ? undefined
+      : await req.text();
+
   const callBackend = async (token: string) => {
     return fetch(targetUrl, {
       method: req.method,
       headers: createHeaders(token),
-      body: req.method === 'GET' ? undefined : req.body,
+      body,
     });
   };
 
@@ -72,7 +77,7 @@ async function handler(req: NextRequest) {
 
         return NextResponse.json(
           { message: 'Unauthorized' },
-          { status: HttpStatusCode.Unauthorized }
+          { status: HttpStatusCode.Unauthorized },
         );
       }
     }
@@ -88,7 +93,7 @@ async function handler(req: NextRequest) {
     console.error('Proxy Error:', error);
     return NextResponse.json(
       { message: 'Internal Server Error' },
-      { status: HttpStatusCode.InternalServerError }
+      { status: HttpStatusCode.InternalServerError },
     );
   }
 }

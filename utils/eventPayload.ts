@@ -1,4 +1,4 @@
-export interface RecurrenceData {
+interface RecurrenceData {
   label: string;
   interval: number;
   unit: 'day' | 'week' | 'month' | 'year';
@@ -22,7 +22,7 @@ export interface BuildPayloadParams {
 }
 
 function getFrequencyFromRecurrence(
-  recurrence: RecurrenceData
+  recurrence: RecurrenceData,
 ): 'daily' | 'weekly' | 'monthly' | 'yearly' {
   switch (recurrence.unit) {
     case 'day':
@@ -49,7 +49,7 @@ export function buildEventPayload({
   userId,
 }: BuildPayloadParams) {
   const startISO = new Date(
-    `${selectedRangeStart}T${startTime}:00`
+    `${selectedRangeStart}T${startTime}:00`,
   ).toISOString();
   const endISO = new Date(`${selectedRangeStart}T${endTime}:00`).toISOString();
 

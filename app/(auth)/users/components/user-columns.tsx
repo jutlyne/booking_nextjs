@@ -1,0 +1,84 @@
+import { ColumnDef } from '@tanstack/react-table';
+import { User } from '../schema';
+import { Checkbox } from '@/components/ui/checkbox';
+import { UserDrawer } from './user-drawer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { IconDotsVertical } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+export const userColumns: ColumnDef<User>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(v) => row.toggleSelected(!!v)}
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'fullname',
+    header: 'Tên nhân viên',
+    cell: ({ row }) => <UserDrawer user={row.original} />,
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+  {
+    accessorKey: 'phone',
+    header: 'Số điện thoại',
+  },
+  {
+    accessorKey: 'avatar',
+    header: 'Ảnh đại diện',
+    cell: ({ row }) => (
+      <img
+        src='https://picsum.photos/200/300'
+        alt={row.original.fullname}
+        className='h-8 w-8 rounded-full object-cover'
+      />
+    ),
+  },
+  {
+    accessorKey: 'role',
+    header: 'Vai trò',
+    cell: ({ row }) => <Badge variant='outline'>{row.original.role}</Badge>,
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size='icon' variant='ghost'>
+            <IconDotsVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end'>
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem variant='destructive'>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
+];
