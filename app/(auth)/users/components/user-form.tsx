@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import z, { ZodObject, ZodType } from 'zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { USER_ERROR_MESSAGES } from '@/common/errorr-msg';
 
 interface UserFormProps<T extends ZodType<any, any>> {
   schema: ZodObject<any, any>;
@@ -100,7 +101,13 @@ export function UserForm<T extends ZodType<any, any>>({
       router.push('/users');
     } catch (error) {
       console.log(error);
-      toast.error('Tạo mới người dùng thất bại');
+      const errorObj = (error as any)?.response?.data?.errors as unknown as object;
+
+      const firstErrorCode = errorObj
+        ? Object.values(errorObj)[0]
+        : 'UNKNOWN_ERROR';
+
+      toast.error(USER_ERROR_MESSAGES[firstErrorCode] || 'Có lỗi xảy ra');
     }
   };
 

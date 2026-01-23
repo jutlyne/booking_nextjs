@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useUpdateUser } from '../hooks/useUpdateUser';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { USER_ERROR_MESSAGES } from '@/common/errorr-msg';
 
 export function UserDrawer({ user }: { user: User }) {
   const isMobile = useIsMobile();
@@ -45,7 +46,14 @@ export function UserDrawer({ user }: { user: User }) {
       await mutateAsync(values);
       toast.success('Cập nhật người dùng thành công');
     } catch (error) {
-      toast.error('Cập nhật người dùng thất bại');
+      const errorObj = (error as any)?.response?.data
+        ?.errors as unknown as object;
+
+      const firstErrorCode = errorObj
+        ? Object.values(errorObj)[0]
+        : 'UNKNOWN_ERROR';
+
+      toast.error(USER_ERROR_MESSAGES[firstErrorCode] || 'Có lỗi xảy ra');
       form.reset();
     } finally {
       setIsOpen(false);
