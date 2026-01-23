@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formSchema, FormValues } from '../new/schema';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -25,12 +24,12 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import z, { ZodType } from 'zod';
+import z, { ZodObject, ZodType } from 'zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 interface UserFormProps<T extends ZodType<any, any>> {
-  schema: T;
+  schema: ZodObject<any, any>;
   defaultValues?: Partial<z.infer<T>>;
   onSubmit: (values: FormData) => Promise<void>;
   mode?: 'create' | 'update';
@@ -45,12 +44,9 @@ export function UserForm<T extends ZodType<any, any>>({
   const router = useRouter();
   const [preview, setPreview] = useState<string | null>(null);
 
-  type FormValue = z.infer<typeof schema>;
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      role: 'user',
       ...defaultValues,
     },
   });
@@ -61,7 +57,14 @@ export function UserForm<T extends ZodType<any, any>>({
     setValue,
     formState: { errors, isSubmitting },
     reset,
+    watch,
   } = form;
+
+  useEffect(() => {
+    if (defaultValues?.avatarUrl) {
+      setPreview(defaultValues.avatarUrl);
+    }
+  }, [defaultValues]);
 
   useEffect(() => {
     if (defaultValues) reset(defaultValues);
@@ -76,14 +79,18 @@ export function UserForm<T extends ZodType<any, any>>({
     }
   };
 
-  const submitHandler: SubmitHandler<FormValues> = async (values) => {
+  const submitHandler: SubmitHandler<z.infer<typeof schema>> = async (
+    values,
+  ) => {
     try {
       const formData = new FormData();
 
       Object.entries(values).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value as any);
-        }
+        if (value === undefined || value === null) return;
+        if (key === 'avatar' && !(value instanceof File)) return;
+        if (mode === 'update' && key === 'email') return;
+
+        formData.append(key, value as any);
       });
 
       await onSubmit(formData);
@@ -96,6 +103,8 @@ export function UserForm<T extends ZodType<any, any>>({
       toast.error('Tạo mới người dùng thất bại');
     }
   };
+
+  const roleValue = watch('role') as string;
 
   return (
     <div className='flex items-start  justify-center min-h-screen p-4'>
@@ -138,6 +147,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     type='email'
                     placeholder='email@example.com'
                     {...register('email')}
+                    disabled
                   />
                   {errors.email && (
                     <p className='text-xs text-red-500 font-medium'>
@@ -164,6 +174,7 @@ export function UserForm<T extends ZodType<any, any>>({
                 <div className='flex flex-col gap-1.5'>
                   <Label htmlFor='role'>Vai trò</Label>
                   <Select
+                    value={roleValue ?? 'user'}
                     onValueChange={(value) =>
                       setValue(
                         'role',
@@ -309,10 +320,17 @@ export function UserForm<T extends ZodType<any, any>>({
                           onClick={() => {
                             setPreview(null);
                             setValue('avatar', undefined);
+                            setValue('isRemoveAvatar', true);
                           }}
                         >
                           Xóa ảnh
                         </Button>
+                      )}
+
+                      {errors.avatar && (
+                        <p className='text-xs text-red-500 font-medium'>
+                          {errors.avatar.message}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -322,7 +340,14 @@ export function UserForm<T extends ZodType<any, any>>({
           </CardContent>
 
           <CardFooter className='flex justify-end gap-3 bg-slate-50/50 p-6'>
-            <Button variant='outline' type='button' onClick={() => reset()}>
+            <Button
+              variant='outline'
+              type='button'
+              onClick={() => {
+                reset();
+                router.push('/users');
+              }}
+            >
               Hủy
             </Button>
             <Button type='submit' className='px-8' disabled={isSubmitting}>

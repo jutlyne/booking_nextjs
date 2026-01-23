@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useDeleteUser } from '../hooks/useDeleteUser';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -56,7 +57,7 @@ export const userColumns: ColumnDef<User>[] = [
     header: 'Ảnh đại diện',
     cell: ({ row }) => (
       <img
-        src={row.original.avatarUrl}
+        src={row.original.avatarUrl ?? 'https://picsum.photos/200'}
         alt={row.original.fullname}
         className='h-8 w-8 rounded-full object-cover'
       />
@@ -83,7 +84,9 @@ export const userColumns: ColumnDef<User>[] = [
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align='end'>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={'/users/' + user.id + '/edit'}>Edit</Link>
+            </DropdownMenuItem>
 
             <ConfirmDialog
               title='Xoá người dùng'

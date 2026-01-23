@@ -7,8 +7,12 @@ export const formSchema = z.object({
   role: z.enum(['user', 'admin', 'super_admin']),
   fullname: z.string().optional(),
   phone: z.string().optional(),
-  avatar: z.instanceof(File).optional(),
+  avatar: z.preprocess(
+    (v) => (v instanceof File ? v : undefined),
+    z.instanceof(File).optional(),
+  ),
   teamId: z.number().optional(),
+  isRemoveAvatar: z.boolean().optional(),
 });
 
 export type FormValues = z.infer<typeof formSchema>;
