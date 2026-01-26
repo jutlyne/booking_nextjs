@@ -64,6 +64,16 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
   }
 }
 
+async function callLogout(token: string) {
+  return fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Cookie: `token=${token}`,
+    },
+  });
+}
+
 export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -155,6 +165,11 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: '/login',
     signOut: '/logout',
+  },
+  events: {
+    async signOut({ token }) {
+      await callLogout(token.auth.token);
+    },
   },
 };
 
