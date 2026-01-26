@@ -18,7 +18,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
         body: JSON.stringify({
           refreshToken: token.auth.refreshToken,
         }),
-      }
+      },
     );
 
     const data = await res.json();
@@ -74,7 +74,7 @@ export const authOptions: AuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(
-        credentials: Record<'email' | 'password', string> | undefined
+        credentials: Record<'email' | 'password', string> | undefined,
       ) {
         if (!credentials) return null;
 
@@ -89,7 +89,7 @@ export const authOptions: AuthOptions = {
                 password: credentials.password,
               }),
               credentials: 'include',
-            }
+            },
           );
 
           if (!res.ok) return null;
@@ -154,6 +154,7 @@ export const authOptions: AuthOptions = {
   },
   pages: {
     signIn: '/login',
+    signOut: '/logout',
   },
 };
 

@@ -1,16 +1,22 @@
 import { decode } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
-// import { Redis } from '@upstash/redis';
+import { Redis } from '@upstash/redis';
 
 const protectedRoutes = ['/users'];
 const publicRoutes = ['/login'];
 
-// Todo implement logic check user in-active
+type Permission = 'USER_CREATE' | 'USER_UPDATE' | 'USER_DELETE' | 'USER_READ';
 
-// const redis = new Redis({
-//   url: process.env.UPSTASH_REDIS_REST_URL,
-//   token: process.env.UPSTASH_REDIS_REST_TOKEN,
-// });
+interface RedisUser {
+  role: 'admin' | 'user' | 'super_admin';
+  permissions: Permission[];
+  isActive: boolean;
+}
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -19,7 +25,7 @@ export async function proxy(req: NextRequest) {
   const isProtectedRoute =
     isHome ||
     protectedRoutes.some(
-      (route) => pathname === route || pathname.startsWith(route + '/')
+      (route) => pathname === route || pathname.startsWith(route + '/'),
     );
 
   const isPublicRoute = publicRoutes.includes(pathname);
@@ -41,11 +47,11 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    // Todo implement logic check user in-active
-    // const isBanned = await redis.get(`banned:${decoded.sub}`);
-    // if (isBanned) {
-    //   return NextResponse.redirect(new URL('/login', req.url));
-    // }
+    const userData = await redis.get<RedisUser>(`user:${decoded.user.id}`);
+
+    if (userData && !userData.isActive) {
+      return NextResponse.redirect(new URL('/logout', req.url));
+    }
   }
 
   return NextResponse.next();
