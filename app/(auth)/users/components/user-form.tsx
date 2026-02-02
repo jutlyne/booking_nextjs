@@ -28,6 +28,7 @@ import z, { ZodObject, ZodType } from 'zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { USER_ERROR_MESSAGES } from '@/common/errorr-msg';
+import { FieldError } from '@/components/ui/field';
 
 interface UserFormProps<T extends ZodType<any, any>> {
   schema: ZodObject<any, any>;
@@ -101,7 +102,8 @@ export function UserForm<T extends ZodType<any, any>>({
       router.push('/users');
     } catch (error) {
       console.log(error);
-      const errorObj = (error as any)?.response?.data?.errors as unknown as object;
+      const errorObj = (error as any)?.response?.data
+        ?.errors as unknown as object;
 
       const firstErrorCode = errorObj
         ? Object.values(errorObj)[0]
@@ -141,9 +143,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     {...register('name')}
                   />
                   {errors.name && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.name.message}
-                    </p>
+                    <FieldError>{errors.name.message}</FieldError>
                   )}
                 </div>
 
@@ -157,9 +157,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     disabled
                   />
                   {errors.email && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.email.message}
-                    </p>
+                    <FieldError>{errors.email.message}</FieldError>
                   )}
                 </div>
 
@@ -172,9 +170,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     {...register('password')}
                   />
                   {errors.password && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.password.message}
-                    </p>
+                    <FieldError>{errors.password.message}</FieldError>
                   )}
                 </div>
 
@@ -199,9 +195,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     </SelectContent>
                   </Select>
                   {errors.role && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.role.message}
-                    </p>
+                    <FieldError>{errors.role.message}</FieldError>
                   )}
                 </div>
               </div>
@@ -222,9 +216,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     {...register('fullname')}
                   />
                   {errors.fullname && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.fullname.message}
-                    </p>
+                    <FieldError>{errors.fullname.message}</FieldError>
                   )}
                 </div>
 
@@ -237,9 +229,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     {...register('phone')}
                   />
                   {errors.phone && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.phone.message}
-                    </p>
+                    <FieldError>{errors.phone.message}</FieldError>
                   )}
                 </div>
 
@@ -252,9 +242,7 @@ export function UserForm<T extends ZodType<any, any>>({
                     {...register('teamId', { valueAsNumber: true })}
                   />
                   {errors.teamId && (
-                    <p className='text-xs text-red-500 font-medium'>
-                      {errors.teamId.message}
-                    </p>
+                    <FieldError>{errors.teamId.message}</FieldError>
                   )}
                 </div>
               </div>
@@ -335,9 +323,7 @@ export function UserForm<T extends ZodType<any, any>>({
                       )}
 
                       {errors.avatar && (
-                        <p className='text-xs text-red-500 font-medium'>
-                          {errors.avatar.message}
-                        </p>
+                        <FieldError>{errors.avatar.message}</FieldError>
                       )}
                     </div>
                   </div>

@@ -19,6 +19,7 @@ import { useUpdateUser } from '../hooks/useUpdateUser';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { USER_ERROR_MESSAGES } from '@/common/errorr-msg';
+import { FieldError } from '@/components/ui/field';
 
 export function UserDrawer({ user }: { user: User }) {
   const isMobile = useIsMobile();
@@ -98,9 +99,7 @@ export function UserDrawer({ user }: { user: User }) {
                 <Label>Tên</Label>
                 <Input {...register('fullname')} />
                 {errors.fullname && (
-                  <p className='text-sm text-red-500'>
-                    {errors.fullname.message}
-                  </p>
+                  <FieldError>{errors.fullname.message}</FieldError>
                 )}
               </div>
 
@@ -108,7 +107,7 @@ export function UserDrawer({ user }: { user: User }) {
                 <Label>Số điện thoại</Label>
                 <Input {...register('phone')} />
                 {errors.phone && (
-                  <p className='text-sm text-red-500'>{errors.phone.message}</p>
+                  <FieldError>{errors.phone.message}</FieldError>
                 )}
               </div>
 
@@ -120,9 +119,7 @@ export function UserDrawer({ user }: { user: User }) {
                   {...register('password')}
                 />
                 {errors.password && (
-                  <p className='text-sm text-red-500'>
-                    {errors.password.message}
-                  </p>
+                  <FieldError>{errors.password.message}</FieldError>
                 )}
               </div>
             </div>
